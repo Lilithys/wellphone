@@ -1,0 +1,31 @@
+--- a/server/src/main/java/com/genymobile/scrcpy/video/NewDisplayCapture.java
++++ b/server/src/main/java/com/genymobile/scrcpy/video/NewDisplayCapture.java
+@@ -231,8 +231,28 @@
+                             | VIRTUAL_DISPLAY_FLAG_DEVICE_DISPLAY_GROUP;
+                 }
+             }
++            // Wellphone experiment: keep the primary display as the top focused display.
++            // Query runtime constants because OEM backports do not follow SDK_INT reliably.
++            // Fail closed if this device does not expose the required focus capabilities.
++            int ownFocus = android.hardware.display.DisplayManager.class
++                    .getField("VIRTUAL_DISPLAY_FLAG_OWN_FOCUS").getInt(null);
++            int noSteal = android.hardware.display.DisplayManager.class
++                    .getField("VIRTUAL_DISPLAY_FLAG_STEAL_TOP_FOCUS_DISABLED").getInt(null);
++            int ownFocusDisplay = android.view.Display.class.getField("FLAG_OWN_FOCUS").getInt(null);
++            int noStealDisplay = android.view.Display.class.getField("FLAG_STEAL_TOP_FOCUS_DISABLED").getInt(null);
++            flags |= VIRTUAL_DISPLAY_FLAG_TRUSTED | ownFocus | noSteal;
++            Ln.i("Wellphone focus experiment: request flags=0x" + Integer.toHexString(flags));
+             VirtualDisplay vd = ServiceManager.getDisplayManager()
+                     .createNewVirtualDisplay("scrcpy", displaySize.getWidth(), displaySize.getHeight(), dpi, surface, flags);
++            int actualFlags = vd.getDisplay().getFlags();
++            int requiredFlags = ownFocusDisplay | noStealDisplay;
++            if ((actualFlags & requiredFlags) != requiredFlags) {
++                vd.release();
++                throw new IllegalStateException("Wellphone focus flags rejected: actual=0x" + Integer.toHexString(actualFlags)
++                        + ", required=0x" + Integer.toHexString(requiredFlags));
++            }
++            Ln.i("Wellphone focus flags VERIFIED: display=" + vd.getDisplay().getDisplayId()
++                    + " actual=0x" + Integer.toHexString(actualFlags));
+             setCurrentVirtualDisplay(vd); // used for client resize
+             int virtualDisplayId = vd.getDisplay().getDisplayId();
+             Ln.i("New display: " + displaySize.getWidth() + "x" + displaySize.getHeight() + "/" + dpi + " (id=" + virtualDisplayId + ")");

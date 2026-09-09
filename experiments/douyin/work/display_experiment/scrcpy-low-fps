@@ -1,0 +1,4 @@
+#!/bin/sh
+# Only the explicit startup comparison selects this launcher. No extra process
+# remains: exec preserves the PID used by focus checks and session cleanup.
+exec "$(dirname "$0")/../frame_stream/scrcpy-live" --max-fps=5 "$@"

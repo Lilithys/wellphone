@@ -1,0 +1,18 @@
+{
+  "variant": "non_presentation_trial",
+  "status": "HONOR_Magic3_Android14_three_short_preflights_passed_model_handoff_pending",
+  "acceptance_record": "startup-acceptance.md",
+  "upstream_version": "scrcpy v4.1",
+  "source_url": "https://codeload.github.com/Genymobile/scrcpy/tar.gz/refs/tags/v4.1",
+  "source_sha256": "537b2ade623cb94b6edddfa5c61bf0b0af21484aa8365ea2531b686ea573249a",
+  "base_patch": "../focus_experiment/no-steal-focus.patch",
+  "base_patch_sha256": "ed2413926ba31ef665d9c9299f4ccfc0d8cd22ba563006436fc4ada27e5dec03",
+  "patch": "non-presentation.patch",
+  "patch_sha256": "ce191cc369eb98fb6dc801e32a915d22ea26329e4e6cd282c1809d4f0fb027e8",
+  "server_sha256": "556bebcba8c260956b674750dc7a10c1c52af2740616703142caf28c04466542",
+  "baseline_server_sha256": "f837bbb986ea311f02a1328bde88a97399c4bd81c507f86b6d824774cd0d8d78",
+  "build_method": "upstream server/build_without_gradle.sh; JDK 17; platform 36; build tools 36.0.0",
+  "toolchain_manifest": "../focus_experiment/build-manifest.json",
+  "runtime_scope": "--preflight OR --startup-only --confirm-home-first, with --non-presentation; handoff has one human-reviewed messages tap; no draft/send",
+  "functional_delta": "remove VIRTUAL_DISPLAY_FLAG_PRESENTATION; add actual Display.FLAG_PRESENTATION absence check; retain all focus flags and their readback"
+}

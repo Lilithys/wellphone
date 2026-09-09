@@ -1,0 +1,18 @@
+{
+  "upstream_version": "scrcpy v4.1",
+  "source_url": "https://codeload.github.com/Genymobile/scrcpy/tar.gz/refs/tags/v4.1",
+  "source_sha256": "537b2ade623cb94b6edddfa5c61bf0b0af21484aa8365ea2531b686ea573249a",
+  "patch": "no-steal-focus.patch",
+  "server_sha256": "f837bbb986ea311f02a1328bde88a97399c4bd81c507f86b6d824774cd0d8d78",
+  "original_homebrew_server_sha256": "deacb991ed2509715160ffdc7907e47b4160eb30d1566217e9047fd5b8850cae",
+  "jdk_url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.20.1_1.tar.gz",
+  "jdk_sha256": "196d13ba5f10414bef7f6a05a9b3f00edacb18ebacef2b99485db9e2ee18f0e8",
+  "android_platform_url": "https://dl.google.com/android/repository/platform-36_r02.zip",
+  "android_platform_sha1": "2c1a80dd4d9f7d0e6dd336ec603d9b5c55a6f576",
+  "android_build_tools_url": "https://dl.google.com/android/repository/build-tools_r36_macosx.zip",
+  "android_build_tools_sha1": "199ae0047ee61e842f8ee0c6d3918e44fb9a1f83",
+  "build_method": "upstream server/build_without_gradle.sh; JDK 17; platform 36; build tools 36.0.0",
+  "empty_probe_result": "../../outputs/keyboard-20260907-231410-vm6u7mvv/result.json",
+  "interactive_typing_test": "passed one A-F round, user observed all normal",
+  "interactive_typing_result": "../../outputs/keyboard-20260907-232655-ocvppn0i/result.json"
+}

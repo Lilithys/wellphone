@@ -1,0 +1,42 @@
+--- a/server/src/main/java/com/genymobile/scrcpy/video/NewDisplayCapture.java
++++ b/server/src/main/java/com/genymobile/scrcpy/video/NewDisplayCapture.java
+@@ -211,7 +211,6 @@
+     public void startNew(Surface surface) {
+         try {
+             int flags = VIRTUAL_DISPLAY_FLAG_PUBLIC
+-                    | VIRTUAL_DISPLAY_FLAG_PRESENTATION
+                     | VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+                     | VIRTUAL_DISPLAY_FLAG_SUPPORTS_TOUCH
+                     | VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT;
+@@ -231,15 +230,14 @@
+                             | VIRTUAL_DISPLAY_FLAG_DEVICE_DISPLAY_GROUP;
+                 }
+             }
+-            // Wellphone experiment: keep the primary display as the top focused display.
+-            // Query runtime constants because OEM backports do not follow SDK_INT reliably.
+-            // Fail closed if this device does not expose the required focus capabilities.
++            // Preserve the baseline focus isolation unchanged.
+             int ownFocus = android.hardware.display.DisplayManager.class
+                     .getField("VIRTUAL_DISPLAY_FLAG_OWN_FOCUS").getInt(null);
+             int noSteal = android.hardware.display.DisplayManager.class
+                     .getField("VIRTUAL_DISPLAY_FLAG_STEAL_TOP_FOCUS_DISABLED").getInt(null);
+             int ownFocusDisplay = android.view.Display.class.getField("FLAG_OWN_FOCUS").getInt(null);
+             int noStealDisplay = android.view.Display.class.getField("FLAG_STEAL_TOP_FOCUS_DISABLED").getInt(null);
++            int presentationDisplay = android.view.Display.class.getField("FLAG_PRESENTATION").getInt(null);
+             flags |= VIRTUAL_DISPLAY_FLAG_TRUSTED | ownFocus | noSteal;
+             Ln.i("Wellphone focus experiment: request flags=0x" + Integer.toHexString(flags));
+             VirtualDisplay vd = ServiceManager.getDisplayManager()
+@@ -251,6 +249,13 @@
+                 throw new IllegalStateException("Wellphone focus flags rejected: actual=0x" + Integer.toHexString(actualFlags)
+                         + ", required=0x" + Integer.toHexString(requiredFlags));
+             }
++            if ((actualFlags & presentationDisplay) != 0) {
++                vd.release();
++                throw new IllegalStateException("Wellphone non-presentation flag rejected");
++            }
++            Ln.i("Wellphone non-presentation VERIFIED: display=" + vd.getDisplay().getDisplayId()
++                    + " actual=0x" + Integer.toHexString(actualFlags)
++                    + " presentation_mask=0x" + Integer.toHexString(presentationDisplay));
+             Ln.i("Wellphone focus flags VERIFIED: display=" + vd.getDisplay().getDisplayId()
+                     + " actual=0x" + Integer.toHexString(actualFlags));
+             setCurrentVirtualDisplay(vd); // used for client resize
