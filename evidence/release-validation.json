@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-09",
+  "where": "New delivery source snapshots, not original working directories",
+  "python": "3.14.6",
+  "offline_suites": [
+    {"path": "core", "tests": 157, "seconds": 0.399, "result": "OK"},
+    {"path": "experiments/douyin", "tests": 487, "seconds": 36.227, "result": "OK"},
+    {"path": "experiments/web-context", "tests": 199, "seconds": 0.496, "result": "OK"}
+  ],
+  "counts_are_not_additive_unique_tests": true,
+  "snapshot_byte_comparison": [
+    {"path": "core", "git_tracked_files": 123, "all_match_original_git_blobs": true},
+    {"path": "experiments/douyin", "git_tracked_files": 164, "all_match_original_git_blobs": true},
+    {"path": "experiments/web-context", "git_tracked_files": 131, "all_match_original_git_blobs": true}
+  ],
+  "frozen_manifest_files_per_snapshot": 93,
+  "all_frozen_hashes_pass": true,
+  "main_rule_plan_smoke": "PLANNED: calendar.create plus gui.settings_about; NOT_EXECUTED",
+  "root_entry_help_pass": true,
+  "delivery_python_files_compile": true,
+  "current_mac_arm64_external_dependencies_present": true,
+  "new_phone_or_model_run_during_packaging": false,
+  "source_whitespace_policy": "Historical snapshots retain original whitespace and exact hashes. New delivery files checked separately.",
+  "privacy_scope": "No outputs, runtime journals, credentials or user phone screenshots copied. Historical source paths/test labels remain. Common-token scan is heuristic, not complete anonymization.",
+  "live_demo_video_recorded": false,
+  "github_remote_published": false
+}

@@ -1,0 +1,49 @@
+{
+  "provenance": "Manually selected fields from local records and explicit user observations; not independent certification.",
+  "core_hybrid": {
+    "state": "COMPLETED",
+    "accepted_date": "2026-09-08",
+    "device_family": "HONOR Magic3 Android14",
+    "calendar_created_and_exact_readback": true,
+    "calendar_primary_samples": 13,
+    "calendar_user_observation": "正常",
+    "gui_goal_verified": true,
+    "gui_model_steps": 4,
+    "gui_primary_samples": 91,
+    "gui_user_observation": "正常",
+    "virtual_display_removed": true,
+    "result_sha256": "8e5c49ef21ecd82cc22f263b05376fbcef0f33f09f7c8e6090eb419354759992",
+    "gui_result_sha256": "a0fa75a696dc82f815da35f3f99501a8208756d7c42217f6240d78a606448cfa"
+  },
+  "douyin_fixed_digit": {
+    "date": "2026-09-09",
+    "input_attempts": 1,
+    "draft_exactly_one_observed_by": "assistant_native_secondary_frame",
+    "primary_unaffected_reported_by": "user_after_input",
+    "send_attempted": false,
+    "model_called": false,
+    "autoglm_end_to_end_verified": false,
+    "raw_run_passed": false,
+    "polling_error_while_waiting": "state.default_ime: STDERR_PRESENT",
+    "user_closed_display": true,
+    "cleanup_display_removed": true,
+    "audio_values_restored": true,
+    "result_sha256": "927890cc3d600c01b56cfb192c8c992c4097de7af4058ba237ab980f1835a17b",
+    "after_input_image_sha256": "4b35e4b5b90ab8dbda661b64fd571ab5924239f8e28d67e8f9531800e01b7d7e"
+  },
+  "chinese_preflight": {
+    "phone_probe_runs": 1,
+    "ascii_1_mapped": true,
+    "chinese_ni_hao_mapped": false,
+    "events_injected": false,
+    "gui_input_or_send_tested": false,
+    "other_input_methods_ruled_out": false
+  },
+  "web_context": {
+    "revised_public_sources_read": 3,
+    "old_model_plan_generated": true,
+    "old_plan_quality_issues_found": true,
+    "revised_model_quality_accepted": false,
+    "revised_phone_end_to_end_accepted": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "release": "wellphone-delivery-v1",
+  "assembled_date": "2026-09-09",
+  "main_source": {
+    "path": "core",
+    "commit": "e246814555e36a8437da237ef1361d1b8b7bfb16",
+    "validated_runtime_commit": "3417742a35472b9f66d4926821ac5a2583417d7c",
+    "validated_tag": "baseline-hybrid-agent-v1",
+    "delta_from_runtime": "README and acceptance documentation only"
+  },
+  "experiments": [
+    {"path": "experiments/douyin", "commit": "2c62c7deebeb56255adc203a1f249a0bf34b2cec", "tag": "checkpoint-douyin-ascii-v1", "scope": "fixed ASCII draft input milestone; not message send acceptance"},
+    {"path": "experiments/web-context", "commit": "5a06ea69227abd281b3ad76f29f528056154e59f", "scope": "source-grounded study planner experiment; revised model quality and phone end-to-end not accepted"}
+  ],
+  "source_export": "git archive of explicit commits; no working-tree outputs or credentials",
+  "runtime_source_changed_by_packaging": false,
+  "source_snapshots_include_historical_local_paths_and_test_labels": true,
+  "raw_phone_evidence_included": false,
+  "remote_repository_published": false,
+  "live_demo_video_included": false
+}
