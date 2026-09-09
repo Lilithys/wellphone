@@ -51,7 +51,7 @@ class DiagnosticTests(unittest.TestCase):
         with patch("douyin_diagnostics.subprocess.run", return_value=result) as run:
             self.assertEqual(adb.shell("dumpsys", "audio"), "unchanged\n")
         run.assert_called_once_with(["adb", "-s", "fake-phone", "shell", "dumpsys audio"],
-                                    capture_output=True, text=True, timeout=15)
+                                    capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL)
         self.assertEqual(failures, [])
 
     def test_frozen_fail_closed_rules_preserved(self):

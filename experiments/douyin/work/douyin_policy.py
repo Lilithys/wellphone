@@ -13,7 +13,18 @@ import re
 from pathlib import Path
 
 PACKAGE = "com.ss.android.ugc.aweme"
-RECIPIENT = "336789"
+
+
+def configured_recipient():
+    """Entry parameter only; no model, IO, or recipient inference."""
+    value = os.environ.get("WELLPHONE_DOUYIN_RECIPIENT", "示例联系人")
+    if (not 1 <= len(value) <= 64 or value != value.strip()
+            or any(ord(ch) < 32 or ord(ch) == 127 for ch in value)):
+        raise ValueError("联系人参数无效；未连接手机。")
+    return value
+
+
+RECIPIENT = configured_recipient()
 
 
 class UnclassifiedAction(RuntimeError):

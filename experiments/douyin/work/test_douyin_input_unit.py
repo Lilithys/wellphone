@@ -11,6 +11,7 @@ from douyin_policy import OneSend, PACKAGE
 from run_douyin_test import PinnedMain, SupervisedActions
 from test_douyin_unit import CONTEXT, TAP, frame
 from phone_agent.actions.handler import ActionResult
+from ascii_focus_guard import client_dump_metadata
 
 ACTIVITIES = f"""Display #0 (activities from top to bottom):
  topResumedActivity=ActivityRecord{{aaaa u0 com.hihonor.mms/.Compose t8}}
@@ -92,6 +93,45 @@ class InputTests(unittest.TestCase):
         self.session.shell.assert_any_call("dumpsys", "activity", "-c", "-p", PACKAGE, "-d", 51, "beef")
         self.assertEqual(self.input_calls(), [])
 
+    def use_activity_list(self, client=None):
+        from test_douyin_activity_client_unit import CLIENT as LIST_CLIENT
+        self.session.args.editor_read_mode = "activity-list"
+        ordinary = self.session.shell.side_effect
+        def shell(*args):
+            if args == ("dumpsys", "activity", "-c", "-p", PACKAGE, "-d", 51, "activities"):
+                return LIST_CLIENT if client is None else client
+            return ordinary(*args)
+        self.session.shell.side_effect = shell
+
+    def test_list_reader_is_scoped_and_runs_only_once_without_fallback(self):
+        self.use_activity_list()
+        evidence = require_editor(self.session)
+        self.assertEqual(evidence["read_mode"], "activity-list")
+        self.assertEqual(evidence["status"], "focused_editor")
+        self.assertEqual(len(evidence["client_read_attempts"]), 1)
+        self.assertNotIn("PRIVATE", json.dumps(self.session.report))
+        self.assertEqual(self.input_calls(), [])
+
+    def test_list_reader_timeout_never_falls_back_or_retries(self):
+        from test_douyin_activity_client_unit import CLIENT as LIST_CLIENT
+        self.use_activity_list(LIST_CLIENT + "Failure while dumping the activity: java.io.IOException: Timeout")
+        self.session.args.allow_editor_reobserve = True
+        with self.assertRaises(RuntimeError): require_editor(self.session)
+        calls = [call for call in self.session.shell.call_args_list if call.args[:3] == ("dumpsys", "activity", "-c")]
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args[-1], "activities")
+        self.assertEqual(self.input_calls(), [])
+
+    def test_list_reader_rechecks_window_and_preserves_fixed_input_dispatch(self):
+        self.use_activity_list()
+        target = target_on_display(ACTIVITIES, WINDOWS, 51)
+        with patch("douyin_input.read_target", side_effect=[target, {**target, "window_token": "changed"}]), \
+                self.assertRaisesRegex(RuntimeError, "窗口变化"):
+            require_editor(self.session)
+        self.assertTrue(self.run_input().success)
+        self.assertEqual(len(self.input_calls()), 1)
+        self.assertEqual(self.input_calls()[0].args, ("input", "keyboard", "-d", 51, "text", "1"))
+
     def test_failed_dump_is_never_used_even_if_it_contains_a_focused_editor(self):
         self.client_dump = CLIENT + "Failure while dumping the activity: private detail\n"
         with self.assertRaisesRegex(RuntimeError, "转储不完整"):
@@ -99,6 +139,32 @@ class InputTests(unittest.TestCase):
         self.assertEqual(self.input_calls(), [])
         self.assertEqual(len(self.session.report["fixed_editor_checks"][-1]["client_read_attempts"]), 1)
         self.assertNotIn("private detail", json.dumps(self.session.report))
+
+    def test_client_failure_diagnostics_are_fixed_labels_not_exception_text(self):
+        for suffix, kind in [
+            ("Failure while dumping the activity: java.io.IOException: Timeout", "transfer_pipe_timeout"),
+            ("Failure while dumping the activity: java.io.IOException: PRIVATE-DETAIL", "io_exception"),
+            ("Failure while dumping the activity: SecurityException: PRIVATE-DETAIL", "security_exception"),
+            ("Got a RemoteException while dumping the activity", "remote_exception"),
+            ("Failure while dumping the activity: PRIVATE-DETAIL", "unclassified"),
+        ]:
+            metadata = client_dump_metadata(CLIENT + suffix)
+            self.assertEqual(metadata["error_categories"], ["client_dump_failed"])
+            self.assertEqual(metadata["client_failures"][0]["kind"], kind)
+            self.assertNotIn("PRIVATE-", json.dumps(metadata))
+            self.assertGreater(metadata["line_count"], 0)
+            self.assertGreater(metadata["output_bytes"], 0)
+
+    def test_repeated_timeout_remains_blocked_and_has_read_timing(self):
+        self.session.args.allow_editor_reobserve = True
+        self.client_dump = CLIENT + "Failure while dumping the activity: java.io.IOException: Timeout\n"
+        with self.assertRaisesRegex(RuntimeError, "transfer_pipe_timeout"):
+            require_editor(self.session)
+        reads = self.session.report["fixed_editor_checks"][-1]["client_read_attempts"]
+        self.assertEqual(len(reads), 2)
+        self.assertTrue(all(item["elapsed_ms"] >= 0 for item in reads))
+        self.assertEqual(self.input_calls(), [])
+        self.delegate.execute.assert_not_called()
 
     def test_executor_reobserves_partial_client_once_on_same_target_without_clicking(self):
         self.session.args.executor_test = True
@@ -113,6 +179,17 @@ class InputTests(unittest.TestCase):
         self.assertEqual(self.input_calls(), [])
         self.delegate.execute.assert_not_called()
         self.assertNotIn("private detail", json.dumps(self.session.report))
+
+    def test_cli_authorized_flow_reobserves_scoped_dump_once_without_input(self):
+        self.session.args.allow_editor_reobserve = True
+        ordinary = self.session.shell.side_effect
+        reads = iter([CLIENT + "Failure while dumping the activity: private detail\n", CLIENT])
+        self.session.shell.side_effect = lambda *args: next(reads) if args[:3] == ("dumpsys", "activity", "-c") else ordinary(*args)
+        result = require_editor(self.session)
+        self.assertEqual(len(result["client_read_attempts"]), 2)
+        self.assertEqual(result["status"], "focused_editor")
+        self.assertEqual(self.input_calls(), [])
+        self.assertFalse(getattr(self.session.args, "executor_test", False))
 
     def test_second_partial_wrong_owner_permission_or_real_unfocused_dump_still_blocks(self):
         self.session.args.executor_test = True
@@ -213,7 +290,7 @@ class InputTests(unittest.TestCase):
 
     def test_end_to_end_input_then_one_reviewed_send(self):
         self.assertTrue(self.run_input().success)
-        with patch("builtins.input", return_value="send 336789"), patch("run_douyin_test.countdown"):
+        with patch("builtins.input", return_value="send 示例联系人"), patch("run_douyin_test.countdown"):
             result = self.handler.execute({**TAP, "message": "SEND_ONE"}, 1080, 2400)
         self.assertTrue(result.success, result.message)
         self.assertTrue(result.should_finish)

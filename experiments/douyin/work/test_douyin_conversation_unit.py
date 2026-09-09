@@ -47,7 +47,7 @@ class ConversationTests(unittest.TestCase):
         self.assertTrue(self.execute(FOCUS).success)
 
     def test_complete_sequence_keeps_fixed_input_and_single_durable_send(self):
-        with patch("builtins.input", side_effect=["type 1", "yes", "send 336789"]), \
+        with patch("builtins.input", side_effect=["type 1", "yes", "send 示例联系人"]), \
              patch("run_douyin_test.countdown"), \
              patch("douyin_input.require_editor", return_value={"target": CONTEXT, "focused_editor": {"view_token": "a"}}):
             for action in (SWIPE, OPEN, FOCUS, TYPE, SEND):
@@ -71,7 +71,7 @@ class ConversationTests(unittest.TestCase):
             return SimpleNamespace(action=action, success=result.success,
                                    finished=result.should_finish, message=result.message)
         model.step.side_effect = step
-        with patch("builtins.input", side_effect=["type 1", "yes", "send 336789"]), \
+        with patch("builtins.input", side_effect=["type 1", "yes", "send 示例联系人"]), \
              patch("run_douyin_test.countdown"), \
              patch("douyin_input.require_editor", return_value={"target": CONTEXT, "focused_editor": {"view_token": "a"}}):
             run_conversation(model, self.s, self.root / "model.png", self.journal, self.root, 5, self.delegate)
@@ -428,7 +428,7 @@ class ConversationTests(unittest.TestCase):
             return SimpleNamespace(action=next(responses), thinking="offline test")
         model.model_client = SimpleNamespace(request=Mock(side_effect=request))
         with patch("phone_agent.agent.get_device_factory", return_value=factory), \
-             patch("builtins.input", side_effect=["type 1", "yes", "send 336789"]), \
+             patch("builtins.input", side_effect=["type 1", "yes", "send 示例联系人"]), \
              patch("run_douyin_test.countdown"), \
              patch("douyin_input.require_editor", return_value={"target": CONTEXT, "focused_editor": {"view_token": "a"}}):
             run_conversation(model, self.s, frozen, self.journal, self.root, 4, self.delegate)

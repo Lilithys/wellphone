@@ -6,7 +6,7 @@ Existing startup/conversation/input/send guards remain the dispatch authority.
 import json
 
 from douyin_conversation import ConversationActions, execute_fixed_one
-from douyin_policy import require_same_context
+from douyin_policy import RECIPIENT, require_same_context
 from douyin_startup import StartupActions
 from douyin_transition import wait_for_navigation_transition
 
@@ -59,7 +59,7 @@ def run_executor_probe(session, journal, root, delegate, budget):
         execution_driver="operator_visual_navigation_and_fixed_input",
         autoglm_end_to_end_verified=False, automatic_navigation=False,
         navigation_semantics="operator_review_of_current_secondary_frame",
-        requested_message="1", recipient="336789")
+        requested_message="1", recipient=RECIPIENT)
     gate = session.report.get("home_gate", {})
     if gate.get("status") != "READY_FOR_MODEL" or gate.get("display_id") != session.display_id:
         raise RuntimeError("执行器单测也必须先核对本次正常首页。")
@@ -92,7 +92,7 @@ def run_executor_probe(session, journal, root, delegate, budget):
         if actions.stage == "CHAT" and actions.focus_attempted:
             execute_fixed_one(actions, session, budget - number + 1)
         capture_for_operator(session, f"executor-conversation-{number:02d}.png")
-        print(f"执行器阶段：{actions.stage}；固定对象336789，不搜索、不改草稿。", flush=True)
+        print(f"执行器阶段：{actions.stage}；本次对象{RECIPIENT}，不搜索、不改草稿。", flush=True)
         proposal = read_proposal()
         actions.remaining_after_request = budget - number
         session.report.setdefault("executor_proposals", []).append({"phase": actions.stage,

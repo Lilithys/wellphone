@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 from douyin_input import FixedOneActions, OneDraft
-from douyin_policy import clean_action, validate_action
+from douyin_policy import RECIPIENT, clean_action, validate_action
 from phone_agent.actions.handler import ActionResult
 
 
@@ -25,7 +25,7 @@ def conversation_instruction(progress):
     """One local task per request, not the overall 'find and send' objective."""
     stage = progress["stage"]
     if stage == "FIND_RECIPIENT":
-        task = ("当前任务：只在当前消息列表里定位完整昵称336789。未看到目标时，下一步是向上滑动列表，不是搜索。\n"
+        task = (f"当前任务：只在当前消息列表里定位完整昵称{RECIPIENT}。未看到目标时，下一步是向上滑动列表，不是搜索。\n"
                 "看到完整目标时，只Tap该会话行左侧至中部的导航区域（x=80–550、y=210–880），避开右侧火花、贴纸或快捷回复按钮。\n"
                 "没看到目标且已滑动不足6次：只提出列表内向上Swipe，起终点x=100–650、水平差≤80，"
                 "起点y=500–850、终点y=250–550、向上距离至少150。已滑动6次仍不见就finish。\n"
@@ -33,7 +33,7 @@ def conversation_instruction(progress):
         formats = 'do(action="Tap",element=[x,y])；do(action="Swipe",start=[x,y],end=[x,y])'
         substage = "LOCATE_RECIPIENT_IN_LIST"
     elif stage == "CHAT" and not progress["focus_attempted"]:
-        task = ("当前任务：只检查候选会话的顶部对象是否为336789，并定位空白聊天输入框。"
+        task = (f"当前任务：只检查候选会话的顶部对象是否为{RECIPIENT}，并定位空白聊天输入框。"
                 "候选会话已尝试打开，不等于身份已核实；错人、群聊、旧草稿或无法确认就finish。\n"
                 "只提出一次输入框左中部Tap（x=150–600、y=870–980），不点表情、语音、相机或发送。"
                 "本轮不输入文字、不发送、不搜索、不返回换人。")
@@ -43,7 +43,7 @@ def conversation_instruction(progress):
         if progress.get("system_editor_focus_verified") is not True:
             raise RuntimeError("没有本轮系统编辑框焦点证据，不请模型猜测或提出输入。")
         task = ("当前任务：系统刚刚回读确认本次副屏有唯一可见、启用且获焦点的聊天编辑框。"
-                "现在只看新图，核对顶部对象为336789且聊天输入框为空。\n"
+                f"现在只看新图，核对顶部对象为{RECIPIENT}且聊天输入框为空。\n"
                 "副屏不显示软键盘是隔离设计；占位文字仍显示也不代表未聚焦。不要凭键盘、光标外观重复判断系统焦点。"
                 "系统焦点证据不证明收件人或草稿内容，仍须你检查这两项。\n"
                 "两项满足就只提出一次Type(text=\"1\")；输入前上层还会再次核对对象、空白框及实际编辑器归属。\n"
@@ -52,7 +52,7 @@ def conversation_instruction(progress):
         substage = "PROPOSE_FIXED_ONE_INPUT"
     elif stage == "READY_SEND":
         task = ("当前任务：数字1已输入并经用户核对，只定位该一对一会话的发送按钮。"
-                "再次检查顶部对象336789、草稿恰为1；不确定就finish。\n"
+                f"再次检查顶部对象{RECIPIENT}、草稿恰为1；不确定就finish。\n"
                 "只提出发送按钮Tap（x=700–980、y=800–990），上层将再次请求人工批准；"
                 "不输入、不导航、不换人、不补发，不自行声称对方收到。")
         formats = 'do(action="Tap",element=[x,y])'
@@ -132,7 +132,7 @@ class ConversationActions:
     def progress(self):
         return {"stage": self.stage, "swipes_attempted": self.swipes,
                 "focus_attempted": self.focus_attempted, "consecutive_waits": self.waits,
-                "recipient": "336789", "payload": "1",
+                "recipient": RECIPIENT, "payload": "1",
                 "recipient_relocalizations": self.relocalizations,
                 "rejected_proposal_not_executed": self.rejected_proposal}
 
@@ -173,7 +173,7 @@ class ConversationActions:
                        or (sending and 700 <= x <= 980 and 800 <= y <= 990))
             if not allowed:
                 if self.stage == "FIND_RECIPIENT" and 550 < x <= 650 and 210 <= y <= 880:
-                    raise RecipientRelocalization("联系人点击超出导航限定区，尚未执行。请依据下一张新图重新定位336789所在行的导航区域；Tap须x=80–550、y=210–880，不裁剪旧坐标。")
+                    raise RecipientRelocalization(f"联系人点击超出导航限定区，尚未执行。请依据下一张新图重新定位{RECIPIENT}所在行的导航区域；Tap须x=80–550、y=210–880，不裁剪旧坐标。")
                 raise RuntimeError("点击不在当前阶段限定区域，拒绝；不猜测或改写坐标。")
         return {**safe, "message": expected}
 
@@ -240,7 +240,7 @@ def run_conversation(agent, session, frozen, journal, root, total_budget, delega
     used = len(session.report.get("model_requests", []))
     if used >= total_budget or session.report.get("messages_ready_by_user") is not True:
         raise RuntimeError("消息列表未验收或模型预算已用完，不进入会话/输入/发送。")
-    session.report.update(requested_message="1", recipient="336789", text_input_enabled=True,
+    session.report.update(requested_message="1", recipient=RECIPIENT, text_input_enabled=True,
                           messages_allowed=1, allowed_payloads=["1"], general_type_enabled=False)
     actions = ConversationActions(delegate, session, journal, root)
     agent.action_handler = actions

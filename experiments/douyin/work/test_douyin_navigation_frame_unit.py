@@ -4,7 +4,7 @@ import unittest
 
 from PIL import Image, ImageDraw
 
-from douyin_navigation_frame import MAX_SHIFT, require_same_messages_regions
+from douyin_navigation_frame import MAX_SHIFT, NAVIGATION_TOP, SEARCH_RADIUS, require_same_messages_regions
 from douyin_policy import ContextChanged, RegionChanged, require_same_regions
 from test_douyin_unit import CONTEXT
 
@@ -13,7 +13,7 @@ TAP = {"_metadata": "do", "action": "Tap", "element": [696, 965]}
 
 def navigation_frame(shift=(0, 0), *, target_shift=None, target_missing=False,
                      anchors_missing=False, changed_content=False, changed_badge=False,
-                     brightness_delta=0, contrast=1):
+                     brightness_delta=0, contrast=1, video_bottom=1850):
     picture = Image.new("RGB", (1080, 2400), (28, 28, 28))
     draw = ImageDraw.Draw(picture)
     # Deliberately not a real app screenshot: independent, asymmetric glyphs.
@@ -31,7 +31,7 @@ def navigation_frame(shift=(0, 0), *, target_shift=None, target_missing=False,
         dx, dy = target_shift or shift
         draw.rectangle((785 + dx, 2270 + dy, 810 + dx, 2293 + dy),
                        fill="blue" if changed_badge else "red")
-    draw.rectangle((120, 500, 930, 1850), fill="blue" if changed_content else "gray")
+    draw.rectangle((120, 500, 930, video_bottom), fill="blue" if changed_content else "gray")
     if brightness_delta or contrast != 1:
         picture = picture.point(lambda value: max(0, min(255, round(value * contrast + brightness_delta))))
     out = BytesIO()
@@ -56,11 +56,31 @@ class NavigationFrameTests(unittest.TestCase):
             self.assertEqual(evidence["translation_native_px"], list(shift))
             self.assertFalse(evidence["coordinates_rewritten"])
             self.assertFalse(evidence["semantic_proof"])
-            self.assertEqual(evidence["check"], "messages_structure_v2")
+            self.assertEqual(evidence["check"], "messages_structure_v3")
             self.assertEqual(len(evidence["regions"]), 3)
 
     def test_video_change_is_not_nav_motion(self):
         self.assertIsNotNone(self.check(navigation_frame(), navigation_frame((-2, -2), changed_content=True)))
+
+    def test_click_box_overlapping_video_does_not_reject_stable_navigation(self):
+        action = {**TAP, "element": [696, 961]}
+        before = navigation_frame(video_bottom=NAVIGATION_TOP - 1)
+        after = navigation_frame((-1, -1), changed_content=True, video_bottom=NAVIGATION_TOP - 1)
+        with self.assertRaises(RegionChanged):
+            require_same_regions(before, after, action)
+        evidence = self.check(before, after, action=action)
+        self.assertEqual(evidence["original_difference"]["box"][1], 2242)
+        self.assertEqual(evidence["translation_native_px"], [-1, -1])
+        self.assertGreaterEqual(evidence["boxes"][0][1] - SEARCH_RADIUS, NAVIGATION_TOP)
+        self.assertEqual(action["element"], [696, 961])
+
+    def test_video_overlap_fix_still_rejects_changed_badge_or_missing_target(self):
+        action = {**TAP, "element": [696, 961]}
+        before = navigation_frame(video_bottom=NAVIGATION_TOP - 1)
+        for change in ({"changed_badge": True}, {"target_missing": True}, {"anchors_missing": True}):
+            with self.subTest(change=change), self.assertRaises(RegionChanged):
+                self.check(before, navigation_frame((-1, -1), changed_content=True,
+                           video_bottom=NAVIGATION_TOP - 1, **change), action=action)
 
     def test_three_pixels_and_small_brightness_change_preserve_structure(self):
         evidence = self.check(navigation_frame(), navigation_frame((-3, -3), brightness_delta=5))

@@ -313,7 +313,7 @@ class ExecutionTests(unittest.TestCase):
     def test_missing_label_never_offers_to_approve_type(self):
         self.session.args.step_by_step = False
         with patch("builtins.input", side_effect=AssertionError("forbidden actions must not ask")) as prompt:
-            result = self.handler.execute({"_metadata": "do", "action": "Type", "text": "336789"}, 1080, 2400)
+            result = self.handler.execute({"_metadata": "do", "action": "Type", "text": "示例联系人"}, 1080, 2400)
         self.assertFalse(result.success)
         prompt.assert_not_called()
         self.delegate.execute.assert_not_called()

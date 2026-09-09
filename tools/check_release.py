@@ -42,7 +42,7 @@ def check_dependencies():
         if shutil.which(binary) is None:
             failures.append(f"Missing executable: {binary}")
     if platform.system() == "Darwin" and shutil.which("otool"):
-        proc = subprocess.run(["otool", "-L", str(ROOT / "core/work/frame_stream/scrcpy-live")],
+        proc = subprocess.run(["otool", "-L", str(ROOT / "experiments/douyin/work/frame_stream/scrcpy-live")],
                               capture_output=True, text=True, timeout=10)
         if proc.returncode:
             failures.append("Cannot inspect bundled client dependencies.")

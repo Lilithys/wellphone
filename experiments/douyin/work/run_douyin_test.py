@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import signal
 import subprocess
 import sys
@@ -113,6 +114,15 @@ class PinnedMain(MainGuard):
 
 
 class DouyinSession(KeyboardTest):
+    def shell(self, *args):
+        # Noninteractive commands must not consume CLI answers while a monitor
+        # is reading device state. Keep the frozen KeyboardTest source unchanged.
+        result = subprocess.run(
+            ["adb", "-s", self.serial, "shell", shlex.join(map(str, args))],
+            capture_output=True, text=True, check=True, timeout=15,
+            stdin=subprocess.DEVNULL)
+        return result.stdout
+
     def __init__(self, args):
         super().__init__(args)
         self.frames, self.monitor, self.reference = None, None, None
@@ -526,13 +536,15 @@ def execute(args):
                 OneDraft(ROOT / "outputs", session.serial).require_unused()
         content_label = "数字 1，不发表情；输入前和发送前分别核对" if one else "一个免费友善表情"
         if flow:
+            if getattr(args, "editor_read_mode", "activity-token") == "activity-list":
+                print("编辑框读取采用按副屏/应用限定的 Activity 列表客户端路径；核对唯一 Activity、UID、完整层级及焦点，不回退到60ms的旧路径。")
             if executor_test:
                 print("执行器独立测试：不创建AutoGLM客户端、不上传到智谱；由当前核对者看本轮新图提出受限导航，固定输入复用原执行器。")
                 print("结果单独记录，不算AutoGLM全自动通过。其余输入、发送、主屏及音频检查全部保留。")
                 print("仅音频AppOps只读查询允许一次无错误、相同模式的复核；不重试任何写入、输入或点击。")
                 session.report["audio_read_recheck_policy"] = "one_clean_identical_AppOps_get_only_no_write_retry"
-            print("完整目标：同一次副屏首页→消息列表→最多6次向上滑动寻找一对一小号336789→候选会话→只输入并发送一条数字1。")
-            print("候选会话按当前副屏图定位，不是账号ID独立认证；候选错误即停止，不自动换人。输入前核对对象/空白框，输入后核对1，发送前仍需send 336789确认。")
+            print(f"完整目标：同一次副屏首页→消息列表→最多6次向上滑动寻找一对一联系人{RECIPIENT}→候选会话→只输入并发送一条数字1。")
+            print(f"候选会话按当前副屏图定位，不是账号ID独立认证；候选错误即停止，不自动换人。输入前核对对象/空白框，输入后核对1，发送前仍需send {RECIPIENT}确认。")
             print("全程不弹图片预览，不逐步确认滑动；不搜索、不清草稿、不切输入法、不改用表情，旧输入/发送尝试记录仍阻止重试。")
             print("候选会话导航区限x=80–550/y=210–880；除点击点外，还在点击前两次对比左侧头像/昵称行区域。范围不证明身份，输入和发送仍须核对。")
             print("找人时稍偏右的越界提案（550<x≤650）可换新图重新定位一次，占用原预算；不改坐标，不重试已分发动作、输入或发送。")
@@ -649,7 +661,7 @@ def execute(args):
                                     raise
                     if flow:
                         from douyin_conversation import run_conversation
-                        print("消息列表已核对；保持本次副屏与音频保护，进入寻找小号336789的阶段。", flush=True)
+                        print(f"消息列表已核对；保持本次副屏与音频保护，进入寻找联系人{RECIPIENT}的阶段。", flush=True)
                         run_conversation(agent, session, frozen, journal, ROOT, args.max_steps, raw_delegate)
                 elif not executor_test:
                     agent.action_handler = SupervisedActions(agent.action_handler, session, journal)
@@ -740,13 +752,17 @@ def main():
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--preflight", action="store_true", help="仅启动抖音验证隔离，不调用模型、不发送")
     modes.add_argument("--startup-only", action="store_true", help="启动到消息列表；最多8次模型请求，每次导航人工确认，不输入、不进会话、不发送")
-    modes.add_argument("--send-one-flow", action="store_true", help="同次副屏从首页接到小号336789单数字1流程；输入/发送仍核对，不弹图、不重试")
+    modes.add_argument("--send-one-flow", action="store_true", help="同次副屏从首页接到指定联系人单数字1流程；输入/发送仍核对，不弹图、不重试")
     parser.add_argument("--non-presentation", action="store_true", help="保留焦点隔离的非展示屏版：仅预检、人工首页接力或显式 --send-one-flow")
     parser.add_argument("--confirm-home-first", action="store_true", help="与 --startup-only 或 --send-one-flow 合用：先人工确认首页，再在同一个副屏接入模型")
     parser.add_argument("--auto-messages", action="store_true", help="仅人工首页确认的非展示屏测试：取消弹图/逐步确认，自动点击一次限定消息入口；保留授权与最终观察")
     parser.add_argument("--low-fps-trial", action="store_true", help="请求副屏编码上限5fps；仅带confirm-home-first+non-presentation+auto-messages的startup-only或send-one-flow，完整发送仍待验收")
     parser.add_argument("--reviewer", choices=["user", "assistant"], default="user", help="记录副屏视觉核对来源；不改变任何确认门槛，主屏观察仍须用户反馈")
     parser.add_argument("--executor-test", action="store_true", help="独立测试执行器：当前核对者看新图导航，无AutoGLM请求；固定输入和发送检查不变")
+    parser.add_argument("--allow-editor-reobserve", action="store_true",
+                        help="仅固定数字流程：客户端层级首次读取失败时，对同一副屏Activity只读重查一次；不重点击或输入")
+    parser.add_argument("--editor-read-mode", choices=["activity-token", "activity-list"], default="activity-token",
+                        help="仅固定数字流程：activity-list 使用副屏过滤的2秒客户端读取路径；完整性或归属不符即停止，不自动回退")
     parser.add_argument("--max-steps", type=int, default=12)
     parser.add_argument("--step-by-step", action="store_true", help="调试模式：强制每步人工核对")
     parser.add_argument("--message", choices=["1"], default="1", help="固定任务内容，只允许数字 1，不启用通用 Type")

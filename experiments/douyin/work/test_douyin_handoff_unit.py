@@ -236,7 +236,25 @@ class HandoffTests(unittest.TestCase):
         self.assertIn("聊天截图", task)
         self.assertIn("禁止点击底部“首页”", task)
         self.assertIn('message="OPEN_MESSAGES"', task)
+        self.assertIn("不是被截断的总任务", task)
+        self.assertIn("不需要知道进入消息列表之后", HANDOFF_SYSTEM_PROMPT)
         self.assertIn("不能证明消息页已打开", HANDOFF_SYSTEM_PROMPT)
+
+    def test_task_clarification_finish_gets_one_model_only_reprompt(self):
+        actions = self.unlabeled_handler()
+        refusal = {"_metadata": "finish", "message": "任务描述不完整，请补充完整的任务要求"}
+        first = actions.execute(refusal, 1080, 2400)
+        self.assertFalse(first.success)
+        self.assertTrue(actions.needs_model_retry)
+        self.assertEqual(actions.progress()["clarification_reprompts"], 1)
+        self.assertIn("误把这个完整局部阶段", startup_task(True, progress=actions.progress(), handoff=True))
+        self.delegate.execute.assert_not_called()
+        self.s.capture.assert_not_called()
+        second = actions.execute(refusal, 1080, 2400)
+        self.assertFalse(second.success)
+        self.assertFalse(actions.needs_model_retry)
+        self.assertEqual(self.s.report["model_stop_reason"], refusal["message"])
+        self.delegate.execute.assert_not_called()
 
     @staticmethod
     def actions_progress(attempted=False):
@@ -325,7 +343,7 @@ class HandoffTests(unittest.TestCase):
 
     def test_unlabeled_tap_cannot_use_generic_or_send_approval(self):
         actions = self.unlabeled_handler()
-        for answer in ("yes", "n", "send 336789", "1", "q", ""):
+        for answer in ("yes", "n", "send 示例联系人", "1", "q", ""):
             with patch("builtins.input", return_value=answer):
                 self.assertFalse(actions.execute(UNLABELED_MESSAGES, 1080, 2400).success)
         self.delegate.execute.assert_not_called()

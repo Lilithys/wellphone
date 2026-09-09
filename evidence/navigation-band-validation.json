@@ -1,0 +1,40 @@
+{
+  "issue": "message_navigation_comparison_included_video_above_navigation_bar",
+  "date": "2026-09-09",
+  "private_source_run": "douyin-flow-20260909-233939-g760an52",
+  "historical_action_attempted": false,
+  "historical_input_attempted": false,
+  "historical_send_attempted": false,
+  "original_target_box_native_px": [687, 2242, 816, 2371],
+  "navigation_only_target_box_native_px": [687, 2268, 816, 2371],
+  "unchanged_action_coordinates": [696, 961],
+  "replays": [
+    {
+      "before": "startup-model-01.png",
+      "after": "startup-review-01.png",
+      "result": "PASS",
+      "translation_native_px": [-1, -1],
+      "mean_correlation": 0.9979674218847807
+    },
+    {
+      "before": "handoff-home-confirmed.png",
+      "after": "startup-review-01.png",
+      "result": "PASS",
+      "translation_native_px": [-3, -3],
+      "mean_correlation": 0.9963221313109424
+    },
+    {
+      "before": "startup-review-01.png",
+      "after": "handoff-after-model.png",
+      "result": "PASS",
+      "translation_native_px": [-1, -1],
+      "mean_correlation": 0.9979958563483957
+    }
+  ],
+  "regression_tests": {"count": 108, "result": "PASS"},
+  "general_and_send_pixel_guard": "unchanged_and_still_rejects_original_pair",
+  "model_requests_in_validation": 0,
+  "phone_operations_in_validation": "NOT_RUN",
+  "live_acceptance_after_change": "NOT_RUN",
+  "private_screenshots_committed": false
+}

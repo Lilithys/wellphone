@@ -64,7 +64,7 @@ class StartupTests(unittest.TestCase):
             validate_startup_action({**WAIT, "duration": "8 seconds"})
 
     def test_skip_requires_specific_human_confirmation(self):
-        for answer in ("", "yes", "n", "send 336789"):
+        for answer in ("", "yes", "n", "send 示例联系人"):
             with patch("builtins.input", return_value=answer):
                 result = self.actions.execute(SKIP, 1080, 2400)
             self.assertFalse(result.success)

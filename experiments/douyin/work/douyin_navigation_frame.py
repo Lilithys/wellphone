@@ -17,6 +17,9 @@ MIN_SCORE_GAP = .002  # Ambiguous registrations fail closed.
 MAX_MEAN_DELTA = 8
 CONTRAST_RANGE = (.85, 1.15)
 ANCHORS = ((24, 2270, 400, 2388), (890, 2270, 1056, 2388))
+# Qualified 1080x2400 portrait layout: the solid navigation bar starts here.
+# Keep every translated template inside it, including rejected search positions.
+NAVIGATION_TOP = 2256
 
 
 def structural_match(left, right, left_stats):
@@ -75,7 +78,13 @@ def require_same_messages_regions(before, after, action, *, before_context, afte
         with Image.open(BytesIO(before)) as source, Image.open(BytesIO(after)) as target:
             # Size/context failures have already propagated from the strict guard.
             left, right = source.convert("RGB"), target.convert("RGB")
-            boxes = (tuple(original.evidence["box"]), *ANCHORS)
+            # The generic +/-64px click box can reach into the moving video
+            # above the bar (e.g. Tap y=961 starts at native y=2242). Compare
+            # navigation only; retain all glyphs/badges and both anchor regions.
+            # No score/shift threshold or actual click coordinate is changed.
+            target_box = list(original.evidence["box"])
+            target_box[1] = max(target_box[1], NAVIGATION_TOP + SEARCH_RADIUS)
+            boxes = (tuple(target_box), *ANCHORS)
             crops = [left.crop(box) for box in boxes]
             stats = [ImageStat.Stat(crop) for crop in crops]
             # Blank/low-detail strips cannot establish registration.
@@ -103,8 +112,9 @@ def require_same_messages_regions(before, after, action, *, before_context, afte
             if (not matches or max(abs(v) for v in matches[0]["translation_native_px"]) > MAX_SHIFT
                     or (len(matches) > 1 and matches[0]["mean_correlation"] - matches[1]["mean_correlation"] < MIN_SCORE_GAP)):
                 raise
-            return {"check": "messages_structure_v2", "max_shift_native_px": MAX_SHIFT,
+            return {"check": "messages_structure_v3", "max_shift_native_px": MAX_SHIFT,
                     "review_radius_native_px": REVIEW_RADIUS,
+                    "navigation_top_native_px": NAVIGATION_TOP,
                     "min_correlation_rgb": MIN_CORRELATION, "max_mean_delta_rgb": MAX_MEAN_DELTA,
                     "contrast_ratio_range": list(CONTRAST_RANGE),
                     "search_radius_native_px": SEARCH_RADIUS, "min_score_gap": MIN_SCORE_GAP,

@@ -36,6 +36,25 @@ class DisplayComparisonTests(unittest.TestCase):
         require_comparison_scope(SimpleNamespace(non_presentation=True, startup_only=True, confirm_home_first=True))
         require_comparison_scope(SimpleNamespace())
 
+    def test_editor_reobserve_is_scoped_to_fixed_digit_flow(self):
+        with self.assertRaises(RuntimeError):
+            require_comparison_scope(SimpleNamespace(allow_editor_reobserve=True))
+        require_comparison_scope(SimpleNamespace(
+            allow_editor_reobserve=True, send_one_flow=True, startup_only=False,
+            preflight=False, non_presentation=True, confirm_home_first=True,
+            auto_messages=True, step_by_step=False, message="1",
+            low_fps_trial=True, executor_test=False))
+
+    def test_activity_list_reader_is_scoped_to_fixed_digit_flow(self):
+        for flags in ({}, {"preflight": True}, {"startup_only": True}):
+            with self.subTest(flags=flags), self.assertRaises(RuntimeError):
+                require_comparison_scope(SimpleNamespace(editor_read_mode="activity-list", **flags))
+        require_comparison_scope(SimpleNamespace(
+            editor_read_mode="activity-list", send_one_flow=True, startup_only=False,
+            preflight=False, non_presentation=True, confirm_home_first=True,
+            auto_messages=True, step_by_step=False, message="1",
+            low_fps_trial=True, executor_test=False))
+
     def test_default_server_is_exact_baseline(self):
         self.assertEqual(select_server(Path("/fake"), SimpleNamespace()),
                          Path("/fake/work/focus_experiment/scrcpy-server-focus"))

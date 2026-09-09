@@ -64,7 +64,7 @@ class DiagnosticADB(ADB):
         evidence = event["read_recheck"]
         try:
             fresh = subprocess.run(["adb", "-s", self.serial, "shell", shlex.join(args)],
-                                   capture_output=True, text=True, timeout=15)
+                                   capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL)
             evidence.update(returncode=fresh.returncode, stdout_chars=len(fresh.stdout), stderr_chars=len(fresh.stderr))
             if fresh.returncode or fresh.stderr.strip() or ERROR_OUTPUT.search(fresh.stdout):
                 evidence["status"] = "REJECTED_SECOND_READ"
@@ -88,7 +88,7 @@ class DiagnosticADB(ADB):
         try:
             result = subprocess.run(
                 ["adb", "-s", self.serial, "shell", shlex.join(args)],
-                capture_output=True, text=True, timeout=15,
+                capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL,
             )
         except subprocess.TimeoutExpired:
             event["failure_kind"] = "TIMEOUT"

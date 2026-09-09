@@ -22,7 +22,7 @@ def verify():
 
 def main():
     parser = argparse.ArgumentParser(description="Wellphone 本机版本化入口")
-    parser.add_argument("mode", choices=["baseline", "tests", "verify", "keyboard", "ascii", "router", "douyin", "audio"])
+    parser.add_argument("mode", choices=["baseline", "tests", "verify", "keyboard", "ascii", "router", "douyin", "auto", "audio"])
     parser.add_argument("extra", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.mode in {"baseline", "verify"}:
@@ -50,7 +50,7 @@ def main():
                                   "keyboard": "test_virtual_keyboard.py",
                                   "ascii": "test_virtual_ascii.py",
                                   "router": "run_router.py", "douyin": "run_douyin_test.py",
-                                  "audio": "run_audio_test.py"}[args.mode]
+                                  "auto": "run_douyin_auto.py", "audio": "run_audio_test.py"}[args.mode]
         if not script.is_file():
             raise RuntimeError("此目录没有键盘实验；请在 wellphone-keyboard-experiment 中运行。")
         command = [str(python), str(script), *args.extra]

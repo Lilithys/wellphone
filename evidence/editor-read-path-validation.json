@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-10",
+  "scope": "HONOR Magic3 / Android 14; same-session secondary editor read-only diagnostic",
+  "framework_sha256": "5aead170501cc3e5a13ed432b5962de338781eae360c4db0071f27f417630cec",
+  "vendor_dex_observation": {
+    "ActivityTaskManagerService.dumpActivity_transfer_pipe_timeout_ms": 60,
+    "ActivityRecord.dumpActivity_transfer_pipe_timeout_ms": 2000,
+    "system_modified": false
+  },
+  "old_token_reads": {
+    "host_elapsed_ms": [145, 143],
+    "output_bytes": [399099, 321809],
+    "error_kind": "transfer_pipe_timeout"
+  },
+  "new_filtered_activity_list_reads": {
+    "host_elapsed_ms": [137, 141, 221],
+    "consecutive_parser_passes": 3,
+    "same_target_and_editor": true,
+    "editor_class": "com.ss.android.ugc.aweme.im.widget.SearchableEditText",
+    "editor_resource_id": "app:id/msg_et",
+    "evidence_scope": "live read command plus strict parser; integrated dispatch covered offline, not a full sending run"
+  },
+  "offline_checks": {
+    "douyin_work_tests": 527,
+    "root_entry_tests": 17,
+    "frozen_files": 279,
+    "passed": true
+  },
+  "diagnostic_model_calls": 0,
+  "diagnostic_text_input_attempted": false,
+  "diagnostic_send_attempted": false,
+  "virtual_display_removed": true,
+  "audio_original_values_restored_and_read_back": true,
+  "human_isolation_acceptance": "NOT_OBSERVED",
+  "full_input_and_send_acceptance": "NOT_VERIFIED",
+  "original_baseline_modified": false,
+  "privacy": "No recipient, device serial, conversation text, screenshots, raw hierarchy or framework binary included."
+}

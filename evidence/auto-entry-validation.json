@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-09",
+  "scope": "CLI-authorized dynamic-recipient ASCII message flow; offline verification only",
+  "authorization": "User explicitly confirmed each CLI instruction authorizes its specified recipient and content without another approval; retain stop-on-ambiguity, primary-screen guards and no duplicate sending",
+  "entry": "run.py -> experiments/douyin/run.py auto -> work/run_douyin_auto.py",
+  "task_parser": "delivery_task.py; deterministic explicit single-message Chinese instruction syntax, not unrestricted natural-language understanding",
+  "recipient_source": "current CLI instruction; no real contact hardcoded in active runner",
+  "payload_scope": "1-80 safe ASCII characters; Unicode message rejected before device connection",
+  "human_approval_prompts": false,
+  "human_screen_observation_prompts": false,
+  "human_observations_fabricated": false,
+  "offline_suites": [
+    {"path": "tests", "tests": 16, "result": "OK", "seconds": 0.096},
+    {"path": "experiments/douyin/work", "tests": 506, "result": "OK", "seconds": 35.157}
+  ],
+  "coverage": [
+    "explicit task required; dry-run does not load device/model dependencies",
+    "mock complete flow performs exactly one scoped input and one send without input()",
+    "recipient mismatch, group, ambiguity, nonempty draft and changed editor stop",
+    "known partial client dump permits one same-target read-only reobservation",
+    "input and send reserved durably before dispatch; transport uncertainty not retried",
+    "pending recipient cannot be bypassed with a new request ID",
+    "old outgoing message and sending/failed states do not count as new success",
+    "insufficient verification budget stops before input or send"
+  ],
+  "frozen_integrity": {"snapshots": 3, "files_per_snapshot": 93, "passed": true},
+  "entire_snapshot_byte_identity_claimed": false,
+  "snapshot_changes": "Anonymous nickname substitution in historical experimental source/docs; new autonomous modules, auto entry, and scoped read-only reobservation flag",
+  "current_mac_dependencies_checked": true,
+  "source_diff_whitespace_check": "PASS",
+  "former_real_nickname_in_current_public_source_scan": "no matches",
+  "privacy_exclusions_unchanged": ["private outputs", "old dist archives", "Git history"],
+  "real_phone_or_model_calls_performed": false,
+  "new_autonomous_live_acceptance": "NOT_RUN",
+  "result_semantics": "model-confirmed new outgoing bubble plus machine checks, not account authentication or recipient delivery proof",
+  "git_commit_or_push_performed": false,
+  "old_distribution_archives_regenerated": false
+}

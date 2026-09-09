@@ -75,14 +75,31 @@ def client_dump_metadata(dump):
         ("unknown_command", r"(?mi)^\s*Unknown command:"),
         ("unknown_argument", r"(?mi)^\s*Unknown argument:"),
         ("permission_denied", r"(?mi)^\s*(?:Permission Denial|Permission denied|SecurityException)"),
-        ("client_dump_failed", r"(?mi)^\s*(?:Failure while dumping|Failure dumping|Error dumping)"),
+        ("client_dump_failed", r"(?mi)^\s*(?:Failure while dumping|Failure dumping|Error dumping|Got a RemoteException while dumping)"),
     ]:
         if re.search(pattern, dump):
             categories.append(label)
+    failures = []
+    for index, line in enumerate(lines):
+        if not re.match(r"\s*(?:Failure while dumping|Failure dumping|Error dumping|Got a RemoteException while dumping)", line):
+            continue
+        # Exception messages may contain app/user data. Emit only fixed labels,
+        # never the raw failure line, exception message, or a surrounding excerpt.
+        kind = "unclassified"
+        if re.search(r": java\.io\.IOException: Timeout\s*$", line):
+            kind = "transfer_pipe_timeout"
+        elif re.search(r"\bjava\.io\.IOException\b", line):
+            kind = "io_exception"
+        elif re.search(r"\b(?:java\.lang\.)?SecurityException\b", line):
+            kind = "security_exception"
+        elif "RemoteException while dumping" in line:
+            kind = "remote_exception"
+        failures.append({"kind": kind, "line_number": index + 1})
     return {"nonempty": bool(dump.strip()), "activity_header_count": len(rows),
             "activity_headers": headers,
             "view_hierarchy_count": sum(line.strip() == "View Hierarchy:" for line in lines),
-            "error_categories": categories}
+            "error_categories": categories, "client_failures": failures[:8],
+            "line_count": len(lines), "output_bytes": len(dump.encode("utf-8"))}
 
 
 def client_activity_header(dump, target):
@@ -114,8 +131,13 @@ def editor_evidence(dump, target):
     parts = re.split(r"(?m)^\s*View Hierarchy:\s*$", dump)
     if len(parts) != 2:
         raise RuntimeError("该系统未提供可识别的副屏 View Hierarchy；没有发送文字。")
+    return {"validated_client_header": header, **editor_nodes(parts[1])}
+
+
+def editor_nodes(hierarchy):
+    """Parse view metadata only; callers must independently validate its owner."""
     candidates = []
-    for line in parts[1].splitlines():
+    for line in hierarchy.splitlines():
         match = re.match(r"\s*([\w.$]+)\{([0-9a-f]+) ([A-Za-z.]{8,12}) ([A-Za-z.]{8,12})\s", line)
         if not match:
             continue
@@ -133,5 +155,4 @@ def editor_evidence(dump, target):
                            "eligible": match[3][:3] == "VFE" and match[4][1] == "F"})
     eligible = [item for item in candidates if item["eligible"]]
     return {"status": "focused_editor" if len(eligible) == 1 else "editor_not_confirmed",
-            "validated_client_header": header,
             "candidates": candidates, "focused_editor": eligible[0] if len(eligible) == 1 else None}

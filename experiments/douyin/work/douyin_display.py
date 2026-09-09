@@ -12,6 +12,10 @@ NON_PRESENTATION_RELATIVE = "work/display_experiment/scrcpy-server-non-presentat
 def require_comparison_scope(args):
     require_stream_trial_scope(args)
     flow = getattr(args, "send_one_flow", False)
+    if getattr(args, "editor_read_mode", "activity-token") != "activity-token" and not flow:
+        raise RuntimeError("新的副屏编辑框读取路径仅用于固定数字完整流程。")
+    if getattr(args, "allow_editor_reobserve", False) and not flow:
+        raise RuntimeError("编辑框只读重查仅允许在固定数字完整流程中启用。")
     if flow and (getattr(args, "startup_only", False) or getattr(args, "preflight", False)
                  or not getattr(args, "non_presentation", False) or not getattr(args, "confirm_home_first", False)
                  or not getattr(args, "auto_messages", False) or getattr(args, "step_by_step", False)

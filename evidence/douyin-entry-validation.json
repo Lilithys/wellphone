@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-09",
+  "scope": "Delivery entry changed from archived hybrid router to bounded Douyin flow; source working tree only",
+  "entry": "run.py",
+  "executor": "experiments/douyin/run.py",
+  "executor_snapshot_commit": "2c62c7deebeb56255adc203a1f249a0bf34b2cec",
+  "requested_task": {"app": "Douyin", "existing_recipient": "示例联系人", "message": "1"},
+  "fixed_flags": ["--send-one-flow", "--confirm-home-first", "--non-presentation", "--auto-messages", "--low-fps-trial", "--message", "1"],
+  "default_model_step_limit": 20,
+  "offline_suites": [
+    {"path": "tests", "tests": 13, "seconds": 0.105, "result": "OK"},
+    {"path": "experiments/douyin/work", "tests": 487, "seconds": 34.961, "result": "OK"}
+  ],
+  "entry_help_and_dry_run_pass": true,
+  "dry_run_device_or_model_operations": false,
+  "existing_display_scope_accepts_fixed_flags": true,
+  "frozen_hash_checks": {"snapshots": 3, "files_per_snapshot": 93, "passed": true},
+  "original_snapshot_files_changed": false,
+  "current_mac_external_dependencies_present": true,
+  "whitespace_check_pass": true,
+  "input_and_send_confirmations_preserved": true,
+  "new_phone_or_model_run": false,
+  "message_sent_in_this_change": false,
+  "full_autoglm_send_flow_accepted": false,
+  "historical_evidence": "Fixed ASCII draft 1 was observed; user reported primary screen unaffected. That run was cancelled, not a verified send.",
+  "prior_state_warning": "Original workspace may retain an unsent draft and input journal; new source directory does not reset device state or authorize retry.",
+  "old_v1_archives_regenerated": false,
+  "git_commit_or_push_performed_for_this_change": false
+}

@@ -248,12 +248,12 @@ class EntrypointTests(unittest.TestCase):
                       ["yes", ""] + (["home"] if home_answers is None else home_answers) + ([] if model_error else ["messages"] if auto_messages else ["messages", "messages"]) if handoff else
                       ["yes", ""] + ([] if model_error else ["home", "messages", "messages"]) if startup else
                       ["yes", "", "是"] if preflight else
-                      ["yes", ""] + ([] if model_error else (["type 1", "yes"] if message == "1" else []) + ["send 336789", "yes"]))
+                      ["yes", ""] + ([] if model_error else (["type 1", "yes"] if message == "1" else []) + ["send 示例联系人", "yes"]))
             if send_one_flow and not cancel and not model_error and not missing_home:
                 answers = ["yes", "", "1", "messages"]
                 answers += ["no"] if input_cancel else ["type 1", "yes"]
                 if not input_cancel:
-                    answers += ["no"] if send_cancel else ["send 336789", "yes"]
+                    answers += ["no"] if send_cancel else ["send 示例联系人", "yes"]
             if not cancel:
                 answers += ["正常", "无", music]
             for name, value in [("ROOT", root), ("DouyinSession", Mock(return_value=session)),

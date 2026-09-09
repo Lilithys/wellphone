@@ -1,0 +1,23 @@
+{
+  "change": "root_cli_returns_to_supervised_fixed_digit_executor",
+  "date": "2026-09-09",
+  "source_baseline_tag": "checkpoint-douyin-ascii-v1",
+  "source_baseline_commit": "2c62c7deebeb56255adc203a1f249a0bf34b2cec",
+  "original_repository_modified": false,
+  "root_entry_tests": {"count": 17, "result": "PASS"},
+  "douyin_offline_tests": {"count": 508, "result": "PASS"},
+  "frozen_files": {"count": 279, "result": "PASS"},
+  "task_dry_run": "PASS",
+  "recipient_wiring": "fresh_process_imports_prompts_checks_and_recipient_scoped_journal_names_verified",
+  "fixed_payload": "1",
+  "driver": "legacy_autoglm_native_action_navigation_and_fixed_input",
+  "operator_reviews": "preserved",
+  "editor_client_dump_policy": "one_readonly_reobserve_on_first_client_dump_failed_same_scoped_target",
+  "new_json_model_runner": "retained_but_not_called_by_root_entry",
+  "phone_operations": "NOT_RUN",
+  "model_requests": "NOT_RUN",
+  "sending": "NOT_RUN",
+  "live_acceptance": "NOT_RUN",
+  "historical_limits": "Baseline confirmed digit1 draft and user-reported primary input; no programmatic send in that run.",
+  "old_logs_archives_tags": "not_modified"
+}
