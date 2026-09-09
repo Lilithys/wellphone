@@ -1,0 +1,24 @@
+{
+  "saved_at": "2026-09-08T12:35:49.695339",
+  "evidence_run": "autoglm-20260908-110710-85cph8cw",
+  "task": "打开设置，进入关于手机页面，然后结束。不要修改任何设置。不要输入文字，不要打开其他应用。",
+  "task_verified": true,
+  "human_observation": "正常",
+  "actions": [
+    "Swipe",
+    "Swipe",
+    "Tap",
+    "finish"
+  ],
+  "focus_samples": 87,
+  "all_samples_primary_focus": true,
+  "all_samples_primary_ime": true,
+  "all_samples_keyboard_shown": true,
+  "virtual_display_removed": true,
+  "model_steps": 4,
+  "client_sha256": "f9f8c02f887d1218a51dd953fc7dccf70dd4cc6557d46c5bca7ce08bd72171f2",
+  "server_sha256": "f837bbb986ea311f02a1328bde88a97399c4bd81c507f86b6d824774cd0d8d78",
+  "python": "Python 3.14.6",
+  "source_files_verified": 93,
+  "limitations": "Local source baseline, not a phone or macOS image; agent text input remains disabled."
+}

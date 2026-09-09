@@ -1,0 +1,77 @@
+--- a/app/src/recorder.h
++++ b/app/src/recorder.h
+@@ -40,6 +40,7 @@
+     char *filename;
+     enum sc_record_format format;
+     AVFormatContext *ctx;
++    bool live_stream; // Wellphone: opt-in video-only MKV with per-packet flush
+ 
+     sc_thread thread;
+     sc_mutex mutex;
+--- a/app/src/recorder.c
++++ b/app/src/recorder.c
+@@ -117,6 +117,15 @@
+     } else {
+         st->last_pts = packet->pts;
+     }
++    if (recorder->live_stream) {
++        // Video-only: no interleaving and no cluster/AVIO buffering.
++        if (av_write_frame(recorder->ctx, packet) < 0
++                || av_write_frame(recorder->ctx, NULL) < 0) {
++            return false;
++        }
++        avio_flush(recorder->ctx->pb);
++        return recorder->ctx->pb->error >= 0;
++    }
+     return av_interleaved_write_frame(recorder->ctx, packet) >= 0;
+ }
+ 
+@@ -132,6 +141,10 @@
+ 
+ static bool
+ sc_recorder_open_output_file(struct sc_recorder *recorder) {
++    const char *live = getenv("WELLPHONE_LIVE_MKV");
++    recorder->live_stream = live && !strcmp(live, "1")
++            && recorder->format == SC_RECORD_FORMAT_MKV
++            && recorder->video && !recorder->audio;
+     const char *format_name = sc_recorder_get_format_name(recorder->format);
+     assert(format_name);
+     const AVOutputFormat *format = find_muxer(format_name);
+@@ -265,7 +278,17 @@
+         }
+     }
+ 
+-    bool ok = avformat_write_header(recorder->ctx, NULL) >= 0;
++    AVDictionary *mux_options = NULL;
++    if (recorder->live_stream) {
++        av_dict_set(&mux_options, "live", "1", 0);
++        av_dict_set(&mux_options, "cluster_time_limit", "1", 0);
++    }
++    bool ok = avformat_write_header(recorder->ctx, &mux_options) >= 0;
++    av_dict_free(&mux_options);
++    if (recorder->live_stream && ok) {
++        avio_flush(recorder->ctx->pb);
++        LOGI("Wellphone live MKV: per-packet flush enabled");
++    }
+     if (!ok) {
+         LOGE("Failed to write header to %s", recorder->filename);
+         goto end;
+@@ -393,6 +416,18 @@
+         if (video_pkt) {
+             video_pkt->pts -= pts_origin;
+             video_pkt->dts = video_pkt->pts;
++
++            if (recorder->live_stream) {
++                // A live screenshot must not wait for the next screen change
++                // merely to determine the duration of the current packet.
++                bool ok = sc_recorder_write_video(recorder, video_pkt);
++                av_packet_free(&video_pkt);
++                if (!ok) {
++                    error = true;
++                    goto end;
++                }
++                continue;
++            }
+ 
+             if (video_pkt_previous) {
+                 // we now know the duration of the previous packet

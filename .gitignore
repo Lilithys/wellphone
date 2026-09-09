@@ -1,0 +1,14 @@
+**/outputs/
+**/private_evidence/
+**/__pycache__/
+**/*.py[cod]
+**/.DS_Store
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/scrcpyvenv
+**/.venv/
+**/*.egg-info/
+dist/
+.release-staging/
