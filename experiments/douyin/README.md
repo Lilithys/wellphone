@@ -1,24 +1,37 @@
 # Wellphone：抖音单数字实验
 
-当前分支 `experiment/douyin-streak`，从已验收双通道基线独立扩展。用户已取消表情，改为副屏向自己的小号 `示例联系人` 输入并发送一条数字 `1`，主屏持续打字。应用级音频专项已真机通过；**抖音固定数字输入已有一次执行器实测和用户主屏正常反馈，完整发送尚未验收**。已保存 [checkpoint-douyin-ascii-v1](baseline/douyin-ascii-v1.md)，如实保留取消发送及等待期间查询报错。不是通用无人值守消息助手；专用输入器不切输入法，不调用上游通用 Type。
+当前分支 `experiment/douyin-streak`，从已验收双通道基线独立扩展。用户已取消表情，改为副屏向命令指定的一对一联系人输入并发送一条数字 `1`，主屏持续打字。应用级音频专项已真机通过；**2026-09-10 10:51 的监督式完整流程已在 HONOR Magic3 / Android 14 通过**：AutoGLM 找到消息入口和联系人，执行器核对空白编辑框、定向输入 `1`，再由用户核对后点击发送；主屏观察为正常、无额外声音，副屏已关闭、音频原值已恢复。此次只证明外发状态，不证明对方收件回执或连续火花。不是通用无人值守消息助手；专用输入器不切输入法，不调用上游通用 Type。
+
+最新验收记录保存在本机被忽略的 `outputs/douyin-flow-20260910-105157-x5pfdk_y/`，其中 `passed=true`、`fixed_input_verified=true`、`send_attempted=true`、`send_status=USER_CONFIRMED_OUTGOING`、`recipient_delivery_verified=false`。记录包含私聊截图和设备信息，不提交到 Git。
 
 低帧率启动对照已单轮通过：19:38 display81只点击一次消息入口，转换检查约4.2秒通过，第二次模型截图确为消息列表，人工观察和音频恢复均正常。相比display80实时窗口与PNG不一致，此结果支持继续实验，但不证明长期无积压或完整发送。记录及边界见[低帧率验收](work/display_experiment/low-fps-acceptance.md)。`--low-fps-trial`请求副屏编码上限5fps，不改原生分辨率、解码器或动作保护；目前接入下列明确选择的完整流程，不默认启用。
 
-当前低帧率完整实验入口：同次副屏首页→消息列表→最多6次滑动找示例联系人→空白输入框输入1→核对后发送。全程不弹图片，不逐步确认滑动；保留首页/消息页观察、输入前后核验和最后 `send 示例联系人` 授权。最大20次模型请求，旧草稿不清除，输入/发送尝试持久记录阻止盲目重跑。**尚未真机验收此完整流程；不是新的通过基线。**
+低帧率版本仍是对照实验：同次副屏首页→消息列表→找联系人→输入1→核对后发送。最新通过的是默认非展示屏入口，不应把低帧率参数或其帧率验证状态误写成已验收能力；旧草稿不清除，输入/发送尝试持久记录阻止盲目重跑。
+
+当前已验收的完整入口（默认非展示屏，不加低帧率参数）：
 
 ```sh
-python3 /Users/yishanma/Documents/Codex/wellphone-douyin-experiment/run.py douyin --send-one-flow --confirm-home-first --non-presentation --auto-messages --low-fps-trial --max-steps 20 --serial AYYKVB1809001850
+cd /path/to/wellphone-delivery-20260909
+python3 run.py '在抖音给“联系人昵称”发送“1”' --serial YOUR_DEVICE_SERIAL
+```
+
+运行时仍需按提示确认首页、空白输入框、输入结果和发送按钮；这是一次监督式通过，不是取消所有安全核对后的自动发送。
+
+上方为当前入口；下面的日期和 display 编号段落是历史失败、诊断或对照实验记录，用于解释保护逻辑，不覆盖最新一次通过。
+
+```sh
+python3 /path/to/wellphone-douyin-experiment/run.py douyin --send-one-flow --confirm-home-first --non-presentation --auto-messages --low-fps-trial --max-steps 20 --serial YOUR_DEVICE_SERIAL
 ```
 
 非展示屏版本已在本机完成三次独立短时启动预检（display67/68/69）。仅去掉新副屏的PRESENTATION标记，保留焦点/键盘及音频保护，原服务端和冻结基线不变；见[验收范围](work/display_experiment/startup-acceptance.md)。以下 `--startup-only` 命令仍然**只到消息列表，不进会话、不输入、不发送**，不能与 `--send-one-flow` 同用。
 
 ```sh
-python3 /Users/yishanma/Documents/Codex/wellphone-douyin-experiment/run.py douyin --startup-only --confirm-home-first --non-presentation --serial AYYKVB1809001850
+python3 /path/to/wellphone-douyin-experiment/run.py douyin --startup-only --confirm-home-first --non-presentation --serial YOUR_DEVICE_SERIAL
 ```
 
 用户要求取消弹图/逐步确认时，在上面命令追加 `--auto-messages`；复用本次通过的低帧率组合再追加 `--low-fps-trial`。仅允许本机1080×2400已测试布局的底部消息内区一次Tap，与同次人工确认首页及最新帧做连续性核对；不改坐标、不进会话、不输入/发送，不是通用语义识别。仍保留开头授权、首页输入`1`和最终消息列表观察；不调用图片预览程序。点击后被动等待最多20秒画面转换再请求模型，转换本身不等于成功；未知结果不重点击。带低帧率的组合已有一次启动测试通过，非长期稳定性证明。
 
-非展示屏开关只允许无模型预检、带人工首页确认的消息接力，或上述显式单数字完整流程；不加该开关即原服务端。487项离线测试通过，93个冻结文件一致；不代表真机完整发送或长期稳定性验收。用户要求助手接管时，使用[本机一次性密钥交接与执行器独立测试](OPERATOR-TEST.md)，不读取终端历史、不保存密钥、不冒充真人观察。
+非展示屏开关只允许无模型预检、带人工首页确认的消息接力，或上述显式单数字完整流程；不加该开关即原服务端。当前 527 项执行器离线测试通过，93 个冻结文件一致；真机完整发送已有一次监督式通过，但仍不代表长期稳定性或收件回执。用户要求助手接管时，使用[本机一次性密钥交接与执行器独立测试](OPERATOR-TEST.md)，不读取终端历史、不保存密钥、不冒充真人观察。
 
 当前提示版本`single-stage-v4-protocol-separation`：display83已由系统确认示例联系人会话编辑框获焦点，但模型复述了任务中的停止示例，旧解析器优先识别它而停止，尚未输入。现将动作格式放在系统提示，任务正文不含可执行示例；不从歧义回答中抢救最后一个动作。保留输入前真实焦点读取、双重检查和确认，完整流程单次响应上限1024 token。
 
@@ -47,7 +60,7 @@ python3 /Users/yishanma/Documents/Codex/wellphone-douyin-experiment/run.py douyi
 设备查询失败会记录固定命令类别、返回码及错误信号，不记录原始输出或完整命令；仍立即停止、不自动重试。音频准备失败且本轮未写入时，恢复状态记为未执行，不再与“恢复失败”混淆。9月9日13:50的间歇报错尚未复现，不能视为已修复。
 
 ```sh
-python3 /Users/yishanma/Documents/Codex/wellphone-douyin-experiment/run.py douyin --preflight --non-presentation --serial AYYKVB1809001850
+python3 /path/to/wellphone-douyin-experiment/run.py douyin --preflight --non-presentation --serial YOUR_DEVICE_SERIAL
 ```
 
 最多8次模型请求、连续等待最多2次、3次同屏抖音 Activity 变化后的重新观察；模型每轮收到执行器的已完成动作/等待进度。丢弃旧提案，不重放动作、不重试模型错误。主屏/音频/显示归属异常仍停止。同屏接力尚待真机验收，原数字发送入口保留。
@@ -76,7 +89,7 @@ flowchart LR
 本机 macOS、Python 3.10+、adb、scrcpy 4.1、ffmpeg；USB 调试已授权。默认复用原 `scrcpyvenv`，不升级共享依赖。其他环境先自行准备 `app/requirements.txt` 中的依赖，并设置 `WELLPHONE_BASE_VENV`。本机已带焦点隔离服务端与原生帧客户端，启动时核对哈希。
 
 ```sh
-cd /Users/yishanma/Documents/Codex/wellphone-router
+cd /path/to/wellphone-router
 python3 run.py tests                    # 离线测试，不操作手机
 python3 run.py router plan '明天下午4点安排30分钟的「项目讨论」日程；打开设置，进入关于手机页面'
 python3 run.py router doctor            # 只读设备/日历能力自检
@@ -88,7 +101,7 @@ python3 run.py router run '明天下午4点安排30分钟的「项目讨论」�
 
 | 环境变量 | 用途 |
 |---|---|
-| `WELLPHONE_BASE_VENV` | 可选，默认 `/Users/yishanma/Desktop/wellphone/scrcpyvenv` |
+| `WELLPHONE_BASE_VENV` | 可选，默认使用本机已有的 scrcpyvenv |
 | `PHONE_AGENT_API_KEY` | 仅 AutoGLM 使用；不要替换成 DeepSeek Key |
 | `DEEPSEEK_API_KEY` | 官方 DeepSeek 接口的规划密钥；缺失时交互隐藏输入，不保存 |
 | `WELLPHONE_PLANNER_API_KEY` | 其他兼容服务的规划密钥；不回退读取 AutoGLM / DeepSeek Key |
@@ -101,4 +114,4 @@ DeepSeek 规划：设置 `WELLPHONE_PLANNER_MODEL=deepseek-v4-flash`、`WELLPHON
 
 HONOR Magic3 / Android 14：GUI 基线、固定 ASCII、9月8日18:55静默日历及19:00规则双通道联调均实测通过。路由器**不启用 ASCII Type**。新设备首次须跑 `calendar-test`，按设备、系统版本与执行实现哈希登记资格。结果在 `outputs/router-*/result.json`；SQLite 日志防止超时/重启后重复写入，只有数据与隔离验收都通过才报完成。CPU/发热/掉帧、熄屏、其他机型及 App 未验收。
 
-`baseline-no-steal-v1`、`checkpoint-ascii-v1` 和 `baseline-hybrid-agent-v1` 保留。`python3 run.py verify` 校验 93 个原始文件。密钥、日志、截图、日历资格记录和操作日志均不入 Git，尚未推送 GitHub。详细决策与复测见 [路由说明](work/ROUTER.md)。许可证沿用 `app/LICENSE` 与 `work/focus_experiment/LICENSE.scrcpy`。
+`baseline-no-steal-v1`、`checkpoint-ascii-v1` 和 `baseline-hybrid-agent-v1` 保留。`python3 run.py verify` 校验 93 个原始文件。密钥、日志、截图、日历资格记录和操作日志均不入 Git；本次最新验收说明待随交付提交推送。详细决策与复测见 [路由说明](work/ROUTER.md)。许可证沿用 `app/LICENSE` 与 `work/focus_experiment/LICENSE.scrcpy`。

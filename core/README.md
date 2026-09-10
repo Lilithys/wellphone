@@ -1,5 +1,7 @@
 # Wellphone：同机、不抢主屏的能力路由 Agent
 
+这是 Wellphone 的能力路由基线组件；当前默认交付入口是仓库根目录的抖音监督式流程。两者共享同机虚拟显示与主屏隔离理念，但本目录的日历/设置任务不等同于最新抖音发送验收。
+
 理解目标，再按授权、实时状态和已验证能力选择执行方式。模型不能生成 shell 命令、改变权限或直接决定执行。首版支持单次日历事件与固定“设置→关于手机”GUI 任务；不支持支付、发消息、通知监听、中文 GUI 输入或通用 Type。
 
 ```mermaid
@@ -20,7 +22,7 @@ flowchart LR
 本机 macOS、Python 3.10+、adb、scrcpy 4.1、ffmpeg；USB 调试已授权。默认复用原 `scrcpyvenv`，不升级共享依赖。其他环境先自行准备 `app/requirements.txt` 中的依赖，并设置 `WELLPHONE_BASE_VENV`。本机已带焦点隔离服务端与原生帧客户端，启动时核对哈希。
 
 ```sh
-cd /Users/yishanma/Documents/Codex/wellphone-router
+cd /path/to/wellphone-router
 python3 run.py tests                    # 离线测试，不操作手机
 python3 run.py router plan '明天下午4点安排30分钟的「项目讨论」日程；打开设置，进入关于手机页面'
 python3 run.py router doctor            # 只读设备/日历能力自检
@@ -32,7 +34,7 @@ python3 run.py router run '明天下午4点安排30分钟的「项目讨论」�
 
 | 环境变量 | 用途 |
 |---|---|
-| `WELLPHONE_BASE_VENV` | 可选，默认 `/Users/yishanma/Desktop/wellphone/scrcpyvenv` |
+| `WELLPHONE_BASE_VENV` | 可选，默认使用本机已有的 scrcpyvenv |
 | `PHONE_AGENT_API_KEY` | 仅 AutoGLM 使用；不要替换成 DeepSeek Key |
 | `DEEPSEEK_API_KEY` | 官方 DeepSeek 接口的规划密钥；缺失时交互隐藏输入，不保存 |
 | `WELLPHONE_PLANNER_API_KEY` | 其他兼容服务的规划密钥；不回退读取 AutoGLM / DeepSeek Key |

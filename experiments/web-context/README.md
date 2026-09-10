@@ -1,5 +1,7 @@
 # Wellphone：技术资料 → 个性化复习计划 → 静默日历
 
+这是独立的 Web Context 研究分支，不是当前抖音默认入口。抖音最新监督式端到端验收记录见仓库根目录 README；本目录的手机日历闭环仍按下文状态执行。
+
 读取给定公开资料，结合背景、关注点和明确可用时段生成带来源的复习简报，经核对后在同一台手机后台创建日程并回读验证。用户主屏持续打字。独立分支 `feature/web-context`，保留原同机虚拟显示与双通道基线。
 
 ```mermaid
@@ -18,7 +20,7 @@ flowchart LR
 macOS、Python 3.10+、已配置的 `scrcpyvenv`、adb、手机 USB 调试授权；复用依赖，不自动升级，不安装 APK/新权限。Web 路径不启动副屏或 AutoGLM。完整步骤见 [WEB-CONTEXT](work/WEB-CONTEXT.md)。
 
 ```sh
-cd /Users/yishanma/Documents/Codex/wellphone-web-context
+cd /path/to/wellphone-web-context
 export WELLPHONE_PLANNER_MODEL="deepseek-v4-flash"
 export WELLPHONE_PLANNER_BASE_URL="https://api.deepseek.com"
 export WELLPHONE_WEB_PROXY="http://127.0.0.1:7897"  # 当前 Mac 的本机代理；直连网络不用
@@ -35,7 +37,7 @@ python3 run.py verify         # 93 个冻结源文件哈希
 | `WELLPHONE_PLANNER_MODEL` / `WELLPHONE_PLANNER_BASE_URL` | 明确选择模型/接口，不自动试用或切换 |
 | `WELLPHONE_WEB_PROXY` | 可选本机 HTTP 代理；代理模式只允许默认两个官方文档域名 |
 | `WELLPHONE_STATE_ROOT` | 可选共享资格/防重状态根；本机默认兄弟目录 `wellphone-router` |
-| `WELLPHONE_BASE_VENV` | 可选 Python 环境；默认 `/Users/yishanma/Desktop/wellphone/scrcpyvenv` |
+| `WELLPHONE_BASE_VENV` | 可选 Python 环境；默认使用本机已有的 scrcpyvenv |
 
 写入前须已通过原 `router calendar-test`，主屏短信草稿键盘显示，不发短信、不打开日历。确认 ID/标题/时间后输入 `yes`，倒计时后持续打字。事件可能同步账号，无提醒/邀请/手机通知，不自动删除。只写标题与时段，详细简报在电脑。未知结果不重试，共享原 journal，不清空日志绕过防重。
 
